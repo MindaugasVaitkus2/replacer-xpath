@@ -70,6 +70,7 @@ includes = r'|'.join([fnmatch.translate(x) for x in includes])
 
 filestoedit = []
 
+# can this be setup to operate on a single file?
 """ Loop that only finds files of specified filetype. The filename including
 the path is appended to the list named "filestoedit".
 """
@@ -80,8 +81,6 @@ def main(pathname):
                 if re.match(includes, f): #Apply regex named includes.
                     fullpath = os.path.join(root, f)
                     filestoedit.append(fullpath)
-                    for f in filestoedit:
-                        print f
 #uncomment me       gobble()
     else:
         print
@@ -91,25 +90,42 @@ def main(pathname):
 """
 os.access(pathtofile, os.R_OK) may not be necessary
 """
-    """
-    The xpath goes here to match the content we want to replace.
-    We should perform some type of sanity check on the input.
-    Set up exception handling, failover for non-matches.
-    We need to return the number of matches so we can target
-    them via list manipulation.
-    Use the lxml "open in browser" feature to display the first
-    matching changed page and provide the option to abort."""
+"""
+The xpath goes here to match the content we want to replace.
+We should perform some type of sanity check on the input.
+Set up exception handling, failover for non-matches.
+We need to return the number of matches so we can target
+them via list manipulation.
+Use the lxml "open in browser" feature to display the first
+matching changed page and provide the option to abort."""
+
+# To create a tree run main(pathname) if you haven't yet to populate the list
+# filestoedit[]. Then choose a file from the list, say filestoedit[5]. If you
+# want to find a specific path via name with a matching list index you can
+# run this block:
+# substring = 'search_for_me'
+# for index, string in enumerate(list_of_files):
+#     if substring in string:
+#         print index, string
+# Now you can open a file:
+# filevar = open(filestoedit[13])
+# then you can run the tree parser line from below, and work with the tree
 
 def gobble(filestoedit):
     for pathtofile in filestoedit:
         try:
             with open(pathtofile) as f:
-# should i name the file here something without the full path?
-# probably not the file object being changed only exists
-# here temporarily
                 tree = etree.parse(f, parser)
                 for path in ekspath:
-                    for num in tree.xpath(path):
+                        print path
+# how to perform the replace? should i test for container elements such as
+# <p> <div> etc? if None then place new content in div before the old content
+# once the element is returned from the xpath it may be interacted with via
+# the etree module, thus we could check for container elements with
+# .getparent()
+        except IOError as e:
+            print("%s reading %s." % e, pathtofile)
+# Raise exception..?
 
 # The following block is being generalized above.
 # Assign the advert branches to named variables so we can manipulate them.
@@ -118,40 +134,25 @@ def gobble(filestoedit):
 #    googjs01 = tree.xpath('.//script[@src="http://pagead2.googlesyndication.com/pagead/show_ads.js"]')[0]
 #    googjs02 = tree.xpath('.//script[@src="http://pagead2.googlesyndication.com/pagead/show_ads.js"]')[1]
 
-       except IOError as e:
-            print("Error reading %s." % pathtofile)
-# Raise exception..?
-
-
-# Find the script element containing the old google ad code.
-# More specific, will only match what we seek.
-# count these...
-# Find the script element linking to the js for displaying the old ad
-# More specific, will only match what we seek.
-
-"""
-To consume an invalid XML or HTML file which contains fragments of interest we will use Python's file reading capabilities to create a string object. This string object will then be serialised into an html fragment by lxml using lxml.html.fragments_fromstring function.
-"""
+"""To consume an invalid XML or HTML file which contains fragments of interest
+we will use Python's file reading capabilities to create a string object. This
+string object will then be serialised into an html fragment by lxml using
+lxml.html.fragments_fromstring function."""
 def file_fragment(content):
     fragment = open(content, "r")
     fraglines = fragment.readlines() # creates a list of lines
-
 # join the lines and strip extra whitespace
     fragsmush = "".join(line.rstrip() for line in fraglines)
-
 # parse the fragment into elements at elemfrag[:]
 # for el in elemfrag; print html.tostring(el)
     elemfrag = html.fragments_fromstring(fragsmush)
-
     fragment.close()
-
 # Each part of the former string will be found at a list address.
 # newad[0], newad[3], etc
     newad = html.fragments_fromstring(adfrag)
-
     ad_para01 = googad01.getparent()
     ad_para02 = googad02.getparent()
 
+
 if __name__ == '__main__':
     get_args()
-
