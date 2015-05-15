@@ -114,19 +114,23 @@ def gobble(filestoedit):
             with open(pathtofile) as f:
                 tree = etree.parse(f, parser)
                 # list comprehension, apply function to each item in ekspath
-                oldcontent = [tree.xpath(x) for x in ekspath]
+                targets = [tree.xpath(x) for x in ekspath]
                 # list comprehension, flatten list within list
-                oldcontent = [elem for el in oldcontent for elem in el]
-                # link contiguous blocks of content
-                oldcontent_link = []
-                for f in oldcontent:
-                    if f.getprevious() in oldcontent:
-                        oldcontent_link.append(
-                            [oldcontent.index(f.getprevious()),
-                                oldcontent.index(f)])
-                            return oldcontent_link
-                    else oldcontent_link = oldcontent
-                        return oldcontent_link
+                targets = [elem for el in old_content for elem in el]
+                # group contiguous blocks of content
+                targets_grouped = []
+                # as a list comprehension
+                targets_grouped = [
+                        [(targets.index(f.getprevious()), targets.index(f))]
+                        for f in targets if f.getprevious() in pathways]
+                # the following block may need to be assigned to a function
+                for f in targets:
+                    if f.getprevious() in targets:
+                        targets_grouped.append(
+                            [targets.index(f.getprevious()), targets.index(f)])
+                            return targets_grouped
+                    else targets_grouped = [targets.index(f) for f in targets]
+                        return targets_grouped
         except IOError as e:
             print("%s reading %s." % e, pathtofile)
 # Raise exception..?
