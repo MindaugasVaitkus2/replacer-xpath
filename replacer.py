@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+!/usr/bin/env python
 
 import sys
 import os
@@ -52,8 +52,7 @@ print content
 print ekspath
 print filetype
 
-''' Set includes for filetype filtering via re.match below.
-Choose parser based on filetype argument.'''
+'''Choose lxml parser based on filetype argument.'''
 if 'htm' in (filetype):
     includes = ['*.htm', '*.html']
     parser = etree.HTMLParser()
@@ -61,8 +60,6 @@ else:
     filetype == 'xml'
     includes = ['*.xml']
     parser = etree.XMLParser()
-
-print parser
 
 """Translate the filename match into a regular expression.
 includes becomes '.*\\.htm\\Z(?ms)|.*\\.html\\Z(?ms)'"""
@@ -95,7 +92,7 @@ The xpath goes here to match the content we want to replace.
 We should perform some type of sanity check on the input.
 Set up exception handling, failover for non-matches.
 We need to return the number of matches so we can target
-them via list manipulation.
+them via list manipulation. Maybe not, use list comprehensions!
 Use the lxml "open in browser" feature to display the first
 matching changed page and provide the option to abort."""
 
@@ -116,13 +113,20 @@ def gobble(filestoedit):
         try:
             with open(pathtofile) as f:
                 tree = etree.parse(f, parser)
-                for path in ekspath:
-                        print path
-# how to perform the replace? should i test for container elements such as
-# <p> <div> etc? if None then place new content in div before the old content
-# once the element is returned from the xpath it may be interacted with via
-# the etree module, thus we could check for container elements with
-# .getparent()
+                # list comprehension, apply function to each item in ekspath
+                oldcontent = [tree.xpath(x) for x in ekspath]
+                # list comprehension, flatten list within list
+                oldcontent = [elem for el in oldcontent for elem in el]
+                # link contiguous blocks of content
+                oldcontent_link = []
+                for f in oldcontent:
+                    if f.getprevious() in oldcontent:
+                        oldcontent_link.append(
+                            [oldcontent.index(f.getprevious()),
+                                oldcontent.index(f)])
+                            return oldcontent_link
+                    else oldcontent_link = oldcontent
+                        return oldcontent_link
         except IOError as e:
             print("%s reading %s." % e, pathtofile)
 # Raise exception..?
